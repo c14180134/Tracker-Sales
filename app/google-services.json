@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "725055808267",
+    "project_id": "sales-tracker-7229c",
+    "storage_bucket": "sales-tracker-7229c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:725055808267:android:3e563875ee7959fe2fb80e",
+        "android_client_info": {
+          "package_name": "com.example.trackersales"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "725055808267-itb5ort6q7ihlf4ielfdmfl00hnkonmr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyYW1Lb747Bq45C03mUIuMq0LFcNLeNpc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "725055808267-itb5ort6q7ihlf4ielfdmfl00hnkonmr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
