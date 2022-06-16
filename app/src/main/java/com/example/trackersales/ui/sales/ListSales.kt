@@ -6,8 +6,8 @@ import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.trackersales.R
-import com.example.trackersales.RecAdapterSales
-import com.example.trackersales.UserSales
+import com.example.trackersales.adapter.RecAdapterSales
+import com.example.trackersales.dataclass.UserSales
 import com.google.firebase.firestore.*
 
 class ListSales : AppCompatActivity(){
@@ -31,11 +31,14 @@ class ListSales : AppCompatActivity(){
 
         recyclerView.adapter = recAdapterSales
 
+
         eventChangeListener()
 
     }
 
     private fun eventChangeListener(){
+        salesArrayList.clear()
+        Log.d("salesList",salesArrayList.toString())
         db = FirebaseFirestore.getInstance()
         db.collection("users").
                 addSnapshotListener(object : EventListener<QuerySnapshot>{
@@ -53,7 +56,7 @@ class ListSales : AppCompatActivity(){
                                 salesArrayList.add(dc.document.toObject(UserSales::class.java))
                             }
                         }
-                        recAdapterSales.notifyDataSetChanged()
+
                     }
                 })
     }

@@ -2,6 +2,10 @@
     <string name="app_name">Tracker Sales</string>
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
+    <string name="nama">Nama</string>
+    <string name="alamat">Alamat</string>
+    <string name="no_telepon">No Telp</string>
+    <string name="tambah_customer">Tambah Customer</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Sign in</string>
@@ -104,4 +108,31 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="tanggal">tanggal</string>
+    <string name="none">none</string>
+    <string name="judul">Judul</string>
+    <string name="catatan">Catatan</string>
+    <string name="sales">Sales</string>
+    <string name="customer">Customer</string>
+    <string name="total_penjualan">Total Penjualan:</string>
+    <string name="lihat_detail">Lihat Detail</string>
+    <string name="kerja">Kerja</string>
+    <string name="selesai">Selesai</string>
+    <string name="order">Order</string>
+    <string name="history">History</string>
+    <string name="check_in">Check-in</string>
+    <string name="log_out">Log Out</string>
+    <string name="buat_notif">Buat Notif</string>
+    <string name="penjualan">Penjualan</string>
+    <string name="zero">0</string>
+    <string name="edit_target">edit target</string>
+    <string name="current_progress">Current Progress :</string>
+    <string name="target">Target</string>
+    <string name="lihat_order">Lihat Order</string>
+    <string name="histori_perjalanan">Histori Perjalanan</string>
+    <string name="laporan">Laporan</string>
+    <string name="cth_2_11_2020">cth : 2/11/2020</string>
+    <string name="pick_date">pick date</string>
 </resources>

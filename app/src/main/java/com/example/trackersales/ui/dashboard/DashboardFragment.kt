@@ -1,23 +1,30 @@
 package com.example.trackersales.ui.dashboard
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.trackersales.R
+import com.example.trackersales.adapter.RecAdapterSales
+import com.example.trackersales.dataclass.UserSales
 import com.example.trackersales.databinding.FragmentDashboardBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.*
 
 class DashboardFragment : Fragment() {
-
+    var salesArrayList : ArrayList<UserSales> = ArrayList()
+    private lateinit var db: FirebaseFirestore
     private lateinit var dashboardViewModel: DashboardViewModel
     private var _binding: FragmentDashboardBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+    private lateinit var recAdapterSales: RecAdapterSales
+
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -30,16 +37,57 @@ class DashboardFragment : Fragment() {
 
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         val root: View = binding.root
+        val navBar: BottomNavigationView = requireActivity().findViewById(R.id.nav_view)
+        navBar.visibility = View.VISIBLE
 
-        val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner, Observer {
-            textView.text = it
-        })
+        salesArrayList.clear()
+
+        eventChangeListener()
+        initRecyclerViewSales(root)
         return root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+    private fun initRecyclerViewSales(view: View){
+        val recylcerView = view.findViewById<RecyclerView>(R.id.recSalesView)
+        recylcerView.layoutManager= LinearLayoutManager(activity)
+        recAdapterSales= RecAdapterSales(salesArrayList)
+        recylcerView.adapter=recAdapterSales
+
+    }
+
+    private fun eventChangeListener(){
+        val user = FirebaseAuth.getInstance().currentUser
+        var uid =""
+
+        user?.let {
+            uid=user.uid
+        }
+        db = FirebaseFirestore.getInstance()
+        db.collection("users").
+        addSnapshotListener(object : EventListener<QuerySnapshot> {
+            override fun onEvent(
+                value: QuerySnapshot?,
+                error: FirebaseFirestoreException?
+            ) {
+                if(error !=null){
+                    Log.e("Firestore Error",error.message.toString())
+                    return
+                }
+                for(dc : DocumentChange in value?.documentChanges!!){
+                    if(dc.type == DocumentChange.Type.ADDED){
+                        val pengecualian = dc.document.toObject(UserSales::class.java)
+                        if(pengecualian.UID.toString()!=uid){
+                            salesArrayList.add(dc.document.toObject(UserSales::class.java))
+                        }
+
+                    }
+                }
+                recAdapterSales.notifyDataSetChanged()
+            }
+        })
     }
 }

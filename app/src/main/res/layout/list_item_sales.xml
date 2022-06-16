@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardElevation="8dp"
     app:cardCornerRadius="8dp"
+    android:id="@+id/card_sales"
     android:layout_margin="16dp">
 
     <LinearLayout
@@ -77,9 +78,15 @@
             android:layout_gravity="center_vertical"
             android:orientation="horizontal">
 
+
             <ProgressBar
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:progressBackgroundTint="@color/light_blue_600"
+                android:padding="20dp"
+                android:id="@+id/progressBar3"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
         </LinearLayout>
 
