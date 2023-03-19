@@ -1,13 +1,20 @@
 package com.example.trackersales
 
 import android.Manifest
+import android.R.attr
+import android.app.Activity.RESULT_CANCELED
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.ACTION_PICK
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,20 +22,22 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import androidx.navigation.fragment.findNavController
+import com.example.trackersales.room.Location
+import com.google.android.gms.location.*
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
-
-
 
 
 class Check_in_Fragment : Fragment() {
@@ -63,18 +72,36 @@ class Check_in_Fragment : Fragment() {
         judulEt=view.findViewById(R.id.judulCheckin)
         catatanEt=view.findViewById(R.id.editTextTextMultiLine)
         checkInButton=view.findViewById(R.id.checkin_button)
+        var  gallerybutton = view.findViewById<Button>(R.id.galleryButton)
 
         if(this.context?.let { ContextCompat.checkSelfPermission(it, Manifest.permission.CAMERA) } !=PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(requireActivity(),Array(5){
                 Manifest.permission.CAMERA
             },100)
         }
-
+        if(this.context?.let { ContextCompat.checkSelfPermission(it, Manifest.permission.READ_EXTERNAL_STORAGE) } !=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(requireActivity(),Array(5){
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            },40)
+        }
+        if (imageVCheck.drawable==null){
+            imageVCheck.visibility=View.GONE
+        }
+        gallerybutton.setOnClickListener {
+            val photoPickerIntent = Intent(ACTION_PICK)
+            photoPickerIntent.type = "image/*"
+            imageVCheck.visibility=View.VISIBLE
+            gallerybutton.visibility=View.GONE
+            startActivityForResult(photoPickerIntent, 40)
+        }
         imageVCheck.setOnClickListener {
-            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            startActivityForResult(intent,100)
+            val photoPickerIntent = Intent(ACTION_PICK)
+            photoPickerIntent.type = "image/*"
+            startActivityForResult(photoPickerIntent, 40)
         }
         takePhotoBtn.setOnClickListener {
+            imageVCheck.visibility=View.VISIBLE
+            gallerybutton.visibility=View.GONE
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             startActivityForResult(intent,100)
         }
@@ -93,16 +120,27 @@ class Check_in_Fragment : Fragment() {
     @Override
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode==100){
-            val extras = data?.getExtras()
-            imageBitmap = extras?.get("data") as Bitmap
-            imageVCheck.setImageBitmap(imageBitmap)
-            dataPhoto=data
-            Log.d("data", extras.toString())
+        if (resultCode !== RESULT_CANCELED) {
+            if(requestCode==100&& data!==null){
+                val extras = data?.getExtras()
+                imageBitmap = extras?.get("data") as Bitmap
+                imageVCheck.setImageBitmap(imageBitmap)
+                dataPhoto=data
+                Log.d("data", extras.toString())
+            }
+            if (requestCode==40){
+                val filePath: Uri = data!!.getData()!!
+
+                val bitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, filePath)
+                imageVCheck.setImageBitmap(bitmap)
+                imageBitmap=bitmap
+
+            }
         }
+
     }
 
-    private fun storePhoto(bitmap:Bitmap){
+    private fun storePhoto(bitmap:Bitmap,uniqueid:String){
 
 
         val baos = ByteArrayOutputStream()
@@ -110,7 +148,7 @@ class Check_in_Fragment : Fragment() {
         val storage = FirebaseStorage.getInstance()
         val data = baos.toByteArray()
         val storageRef = storage.reference
-        val uploadTask = storageRef.child("check-in/"+ judulEt.text.toString()).putBytes(data)
+        val uploadTask = storageRef.child("check-in/"+ judulEt.text.toString()+"/"+uniqueid).putBytes(data)
 
         uploadTask.addOnSuccessListener {
 
@@ -120,20 +158,53 @@ class Check_in_Fragment : Fragment() {
         }
 
     }
+    private var locationCallback2: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(p0: LocationResult) {
+            db = FirebaseFirestore.getInstance()
+            super.onLocationResult(p0)
+            if(p0.equals(null)!=true){
+                longitude = p0.lastLocation.longitude
+                latitude = p0.lastLocation.latitude
+                storeOrder()
+            }
+        }
+    }
 
     private fun fetchLocation() {
         val task = fusedLocationClient.lastLocation
         checkLocPermission()
-        task.addOnSuccessListener {
-
-            if(it!=null){
-                longitude=it.longitude
-                latitude=it.latitude
+            val locationRequest = LocationRequest.create()
+            locationRequest.setSmallestDisplacement(20f)
+            locationRequest.setInterval(20000)
+            locationRequest.setFastestInterval(20000)
+            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            if (isLocationEnabled()) {
+                fusedLocationClient.requestLocationUpdates(locationRequest,locationCallback2,
+                    Looper.getMainLooper())
                 Handler().postDelayed({
-                    storeOrder()
-                }, 100)
+                    fusedLocationClient.removeLocationUpdates(locationCallback2)
+                }, 1000)
+
+//                if(it!=null){
+//                    longitude=it.longitude
+//                    latitude=it.latitude
+//                    storeOrder()
+//                }else{
+//                    Toast.makeText(this.context,"Tolong Cek GPS Anda", Toast.LENGTH_SHORT).show()
+//                }
+            } else {
+                Toast.makeText(this.context, "Turn on location", Toast.LENGTH_LONG).show()
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
             }
-        }
+
+
+    }
+    private fun isLocationEnabled(): Boolean {
+        val locationManager: LocationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
+            LocationManager.NETWORK_PROVIDER
+        )
     }
     private fun checkLocPermission(): Boolean {
         if (
@@ -158,8 +229,9 @@ class Check_in_Fragment : Fragment() {
 //        }
         val sharedPref = activity?.getSharedPreferences("LocActive", Context.MODE_PRIVATE)
         var uidsp= sharedPref?.getString("UID","")
-        if(judulEt.text.toString()!=""){
-            Log.d("halo","halo1")
+        if(imageVCheck.drawable!=null){
+            if(judulEt.text.toString()!=""){
+                Log.d("halo","halo1")
                 val items =HashMap<String,Any>()
                 items.put("judul", judulEt.text.toString())
                 items.put("tanggal",currentDate)
@@ -167,9 +239,12 @@ class Check_in_Fragment : Fragment() {
                 items.put("lat",latitude)
                 items.put("catatan", catatanEt.text.toString())
                 items.put("sales_id",uidsp?:"")
-                db.collection("checkin").document().set(items).addOnSuccessListener {
-//                    storePhoto(imageBitmap)
-                    Toast.makeText(this.context,"success Create Order", Toast.LENGTH_SHORT).show()
+                val collection=db.collection("checkin").document()
+                items.put("uniqueid",collection.id)
+                collection.set(items).addOnSuccessListener {
+                    storePhoto(imageBitmap,collection.id)
+                    Toast.makeText(this.context,"Sukses Membuat Laporan", Toast.LENGTH_SHORT).show()
+                    findNavController().navigateUp()
                 }.addOnFailureListener {
                     Toast.makeText(this.context,"it", Toast.LENGTH_SHORT).show()
                 }
@@ -184,7 +259,14 @@ class Check_in_Fragment : Fragment() {
                     }
                 }
 
+            }
+            else{
+                Toast.makeText(this.context,"Tolong buat judul untuk membuat laporan", Toast.LENGTH_SHORT).show()
+            }
+        }else{
+            Toast.makeText(this.context,"Tolong ambil barang untuk membuat laporan", Toast.LENGTH_SHORT).show()
         }
+
 
     }
 

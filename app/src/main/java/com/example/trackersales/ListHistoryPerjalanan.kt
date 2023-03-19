@@ -18,8 +18,12 @@ import com.example.trackersales.dataclass.UserCustomer
 import com.example.trackersales.dataclass.UserSales
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
-import java.util.ArrayList
-import java.util.HashMap
+import com.google.firebase.firestore.EventListener
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 import java.util.zip.Inflater
 
 class ListHistoryPerjalanan : Fragment() {
@@ -55,9 +59,10 @@ class ListHistoryPerjalanan : Fragment() {
     }
 
     private fun initRecyclerViewCustomer(view: View){
+
         val recylcerView = view.findViewById<RecyclerView>(R.id.recHistoryPerjalanan)
         recylcerView.layoutManager= LinearLayoutManager(activity)
-        Log.d("histod",historyArrayList.toString())
+
         recAdapterHistoryPerjalanan= RecAdapterHistoryPerjalanan(historyArrayList)
         recylcerView.adapter=recAdapterHistoryPerjalanan
 
@@ -81,6 +86,9 @@ class ListHistoryPerjalanan : Fragment() {
                             historyArrayList.add(dc.document.toObject(HistoryLokasi::class.java))
                     }
                 }
+                val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/M/yyyy")
+                historyArrayList.sortedByDescending { LocalDate.parse(it.tanggal, dateTimeFormatter) }
+                Log.d("histod",historyArrayList.toString())
                 recAdapterHistoryPerjalanan.notifyDataSetChanged()
             }
         })

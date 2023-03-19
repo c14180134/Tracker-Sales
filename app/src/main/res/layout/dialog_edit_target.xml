@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+
+    android:layout_margin="15dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="15dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Target"
+            android:textColor="@color/black"
+            android:layout_margin="10dp"
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingRight="8dp"
+            android:paddingLeft="8dp"
+            android:textSize="19sp"
+            android:padding="10dp"
+            android:layout_gravity="center" />
+        <EditText
+            android:id="@+id/etTarget"
+            android:background="@drawable/rounded_rectangle"
+            android:padding="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="1dp"
+            android:hint="Masukkan Target"
+            android:inputType="text"
+            android:minHeight="48dp"
+            android:textColor="@color/purple_500"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mengedit target akan mengulan target progress dari sales saat ini"
+            android:textColor="@color/darkergray"
+            android:paddingRight="8dp"
+            android:paddingLeft="8dp"
+            android:textSize="14sp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            />
+
+
+    </LinearLayout>
+
+</LinearLayout>

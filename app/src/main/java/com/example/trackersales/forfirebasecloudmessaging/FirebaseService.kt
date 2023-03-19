@@ -17,11 +17,19 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.trackersales.MainActivityBottomNav
 import com.example.trackersales.R
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlin.random.Random
 
 private const val CHANNEL_ID = "my_channel"
+private lateinit var auth: FirebaseAuth
+private lateinit var db: FirebaseFirestore
 
 class FirebaseService : FirebaseMessagingService() {
 
@@ -40,6 +48,7 @@ class FirebaseService : FirebaseMessagingService() {
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
         token = newToken
+
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

@@ -28,9 +28,14 @@ import com.example.trackersales.service.Constants
 import com.example.trackersales.service.LocationServiceCoba
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.*
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import java.util.HashMap
 
 class MainActivityBottomNav : AppCompatActivity() {
 
@@ -38,10 +43,37 @@ class MainActivityBottomNav : AppCompatActivity() {
 
     private lateinit var db: FirebaseFirestore
     private var permissionID = 52
-
+    private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         getSupportActionBar()?.hide()
+        auth = Firebase.auth
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(
+            OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w("Error", "Fetching FCM registration token failed", task.exception)
+                    return@OnCompleteListener
+                }
+                val user = auth.currentUser
+                var uid =""
+                user?.let {
+                    uid = user.uid
+                }
+                val token = task.result
+                Log.d("token",task.result)
+                db = FirebaseFirestore.getInstance()
+                db.collection("users").whereEqualTo("uid",uid).get()
+                    .addOnCompleteListener {
+                        for(dc : DocumentChange in it.result.documentChanges!!){
+                            if(dc.type == DocumentChange.Type.ADDED){
+                                val items = HashMap<String, Any>()
+                                items.put("tokenFCM",task.result)
+                               db.collection("users").document(dc.document.id).set(items, SetOptions.merge())
+                            }
+                        }
+                    }
+
+            })
         binding = ActivityMainBottomNavBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val navView: BottomNavigationView = binding.navView
@@ -115,6 +147,14 @@ class MainActivityBottomNav : AppCompatActivity() {
 
     }
 
+    fun stopLocationServiceinWM(){
+        var intent=Intent(applicationContext,LocationServiceCoba::class.java)
+        intent.setAction(Constants.ACTION_STOP_LOCATION_SERVICE_IN_WM)
+        startService(intent)
+        Toast.makeText(this,"location Service Stoped",Toast.LENGTH_SHORT).show()
+
+    }
+
 
     private var doubleBackToExitPressedOnce = false
     override fun onBackPressed() {
@@ -154,37 +194,37 @@ class MainActivityBottomNav : AppCompatActivity() {
             RequestPermission()
         }
         super.onStart()
-        val user = FirebaseAuth.getInstance().currentUser
-        var uid =""
-        user?.let {
-            uid = user.uid
-        }
-        db= FirebaseFirestore.getInstance()
-        db.collection("users").
-        addSnapshotListener(object : EventListener<QuerySnapshot> {
-            override fun onEvent(
-                value: QuerySnapshot?,
-                error: FirebaseFirestoreException?
-            ) {
-                if(error !=null){
-                    Log.e("Firestore Error",error.message.toString())
-                    return
-                }
-                for(dc : DocumentChange in value?.documentChanges!!){
-                    if(dc.type == DocumentChange.Type.ADDED){
-                        val pengecualian = dc.document.toObject(UserSales::class.java)
-                        if(pengecualian.UID.toString()==uid){
-                            val sharedPref = getSharedPreferences("LocActive", Context.MODE_PRIVATE)
-                            val editors=sharedPref?.edit()
-                            editors?.putString("UID",uid)
-                            pengecualian.admin?.let { editors?.putBoolean("IS_ADMIN", it) }
-                            editors?.commit()
-                        }
-
-                    }
-                }
-            }
-        })
+//        val user = FirebaseAuth.getInstance().currentUser
+//        var uid =""
+//        user?.let {
+//            uid = user.uid
+//        }
+//        db= FirebaseFirestore.getInstance()
+//        db.collection("users").
+//        addSnapshotListener(object : EventListener<QuerySnapshot> {
+//            override fun onEvent(
+//                value: QuerySnapshot?,
+//                error: FirebaseFirestoreException?
+//            ) {
+//                if(error !=null){
+//                    Log.e("Firestore Error",error.message.toString())
+//                    return
+//                }
+//                for(dc : DocumentChange in value?.documentChanges!!){
+//                    if(dc.type == DocumentChange.Type.ADDED){
+//                        val pengecualian = dc.document.toObject(UserSales::class.java)
+//                        if(pengecualian.UID.toString()==uid){
+//                            val sharedPref = getSharedPreferences("LocActive", Context.MODE_PRIVATE)
+//                            val editors=sharedPref?.edit()
+//                            editors?.putString("UID",uid)
+//                            pengecualian.admin?.let { editors?.putBoolean("IS_ADMIN", it) }
+//                            editors?.commit()
+//                        }
+//
+//                    }
+//                }
+//            }
+//        })
 
     }
 

@@ -5,7 +5,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.trackersales.adapter.AdapterItem
+import com.example.trackersales.adapter.AdapterMainTask
 import com.example.trackersales.databinding.FragmentDetailOrderHistoryBinding
 import com.example.trackersales.databinding.FragmentHomeBinding
 import com.example.trackersales.dataclass.Item
@@ -22,7 +26,6 @@ class DetailOrderHistory : Fragment() {
     private var namaDetailCustomer : String? = null
     private var tanggalDetail:String? = null
     private var totalHarga:String? = null
-
     private lateinit var itemAdapter: AdapterItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,16 +45,26 @@ class DetailOrderHistory : Fragment() {
         _binding = FragmentDetailOrderHistoryBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        itemAdapter = AdapterItem(this.requireContext(), param1!!)
+        initRecyclerViewTask(root)
 
         binding.tvNamaCustomerDetailOrder.text=namaDetailCustomer
         binding.tvTanggalDetailOrder.text=tanggalDetail
         binding.tvTotalHargaDetailOrder.text="Rp."+totalHarga
 
-        binding.listItemHistory.adapter=itemAdapter
 
-        // Inflate the layout for this fragment
+
+        binding.imageButton2.setOnClickListener {
+            it.findNavController().navigateUp()
+        }
         return root
+    }
+
+    private fun initRecyclerViewTask(view: View){
+        val recylcerView = view.findViewById<RecyclerView>(R.id.list_itemHistory)
+        recylcerView.layoutManager= LinearLayoutManager(activity)
+        itemAdapter= AdapterItem(view,param1!!,true)
+        recylcerView.adapter=itemAdapter
+
     }
 
 

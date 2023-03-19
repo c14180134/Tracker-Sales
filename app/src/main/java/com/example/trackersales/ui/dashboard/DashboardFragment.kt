@@ -81,7 +81,10 @@ class DashboardFragment : Fragment() {
                     if(dc.type == DocumentChange.Type.ADDED){
                         val pengecualian = dc.document.toObject(UserSales::class.java)
                         if(pengecualian.UID.toString()!=uid){
-                            salesArrayList.add(dc.document.toObject(UserSales::class.java))
+                            if(pengecualian.UID!=null){
+                                salesArrayList.add(dc.document.toObject(UserSales::class.java))
+                            }
+
                         }
 
                     }

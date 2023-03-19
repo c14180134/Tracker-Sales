@@ -22,25 +22,39 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
            >
+
+            <Button
+                android:id="@+id/galleryButton"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:background="@drawable/rounded_rectangle"
+                app:backgroundTint="@color/white"
+                android:text="click here for Gallery"
+                android:textColor="@color/black" />
             <ImageView
                 android:id="@+id/imageViewCheckin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="100dp"
-                />
+                android:minHeight="150dp"
+                android:minWidth="150dp"
+                android:elevation="20dp"
+                ></ImageView>
         </LinearLayout>
 
 
         <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
 
             <ImageButton
                 android:layout_marginLeft="100dp"
                 android:layout_marginRight="100dp"
                 android:id="@+id/imageButton"
+                android:backgroundTint="@color/light_blue_900"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -115,6 +129,7 @@
 
 
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

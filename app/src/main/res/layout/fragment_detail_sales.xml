@@ -2,12 +2,14 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".DetailSales">
-
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="20dp"
         tools:ignore="UselessParent">
@@ -36,6 +38,7 @@
                 android:layout_weight="1"
                 android:layout_height="match_parent" />
             <Button
+                android:id="@+id/btnEditTarget"
                 android:textSize="12sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -55,6 +58,7 @@
                 android:textSize="20sp"
                 android:textColor="@color/black"/>
             <TextView
+                android:layout_marginLeft="10dp"
                 android:id="@+id/tvCurrentProgress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -69,46 +73,44 @@
             android:orientation="horizontal"
             >
 
+<!--            <LinearLayout-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:orientation="vertical"-->
+<!--                android:padding="20dp"-->
+<!--                android:layout_weight="1"-->
+<!--                android:layout_gravity="center">-->
+<!--&lt;!&ndash;                <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:gravity="center"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:textSize="20sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:textColor="@color/black"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:text="@string/penjualan"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:textSize="20sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:textAlignment="center"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:textColor="@color/black"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:id="@+id/tvTotalDetail"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:text="@string/zero"/>&ndash;&gt;-->
+<!--            </LinearLayout>-->
             <LinearLayout
+                android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp"
-                android:layout_weight="1"
-                android:layout_gravity="center">
-                <TextView
-                    android:gravity="center"
-                    android:textSize="20sp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:text="@string/penjualan"/>
-                <TextView
-                    android:textSize="20sp"
-                    android:textAlignment="center"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:id="@+id/tvTotalDetail"
-                    android:text="@string/zero"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:padding="20dp"
                 android:layout_gravity="center">
                 <TextView
-                    android:gravity="center"
                     android:textSize="20sp"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
-                    android:text="@string/target"/>
+                    android:text="Target: "/>
                 <TextView
                     android:textSize="20sp"
-                    android:textAlignment="center"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
@@ -117,6 +119,19 @@
             </LinearLayout>
 
 
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+            <Button
+                android:id="@+id/btn_target_lokasi"
+                android:textSize="20sp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tujuan Lokasi"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -180,8 +195,32 @@
                 android:text="@string/laporan"/>
 
         </LinearLayout>
+        <HorizontalScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp">
+
+            <com.github.mikephil.charting.charts.BarChart
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:id="@+id/barChart"/>
+
+        </HorizontalScrollView>
+        <HorizontalScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp">
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/linechart"/>
+
+        </HorizontalScrollView>
 
     </LinearLayout>
+</ScrollView>
+
 
 
 </FrameLayout>

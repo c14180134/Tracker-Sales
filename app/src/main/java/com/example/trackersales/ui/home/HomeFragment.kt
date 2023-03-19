@@ -11,15 +11,22 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
+import androidx.work.OneTimeWorkRequest
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.example.trackersales.MainActivityBottomNav
 import com.example.trackersales.R
 import com.example.trackersales.databinding.FragmentHomeBinding
+import com.example.trackersales.dataclass.Item
 import com.example.trackersales.dataclass.Orders
 import com.example.trackersales.room.Location
 import com.example.trackersales.room.LocationDB
 import com.example.trackersales.ui.login.LoginActivity
+import com.example.trackersales.workManager.StopUpdateLocationWorker
+import com.example.trackersales.workManager.UpdateLocationWorker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
@@ -29,6 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class HomeFragment : Fragment() {
 
@@ -52,18 +60,38 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        db = FirebaseFirestore.getInstance()
 
         val simpleDate = SimpleDateFormat("dd/M/yyyy")
         val currentDate = simpleDate.format(Date())
 
         val user = FirebaseAuth.getInstance().currentUser
+        var email = ""
         var namaUser =""
 
         user?.let {
-           namaUser = user.email.toString()
+            db.collection("users").whereEqualTo("uid",user.uid)
+                .addSnapshotListener(object : EventListener<QuerySnapshot>{
+                    override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
+                        if(error !=null){
+                            Log.e("Error",error.message.toString())
+                            return
+                        }
+
+                        for(dc:DocumentChange in value?.documentChanges!!){
+                            if(dc.type == DocumentChange.Type.ADDED){
+                                namaUser = dc.document["email"].toString()
+                                binding.tvSalesName.text=namaUser
+                            }
+                        }
+
+                    }
+                })
+            email= user.email.toString()
             uid=user.uid
         }
+
+
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -107,7 +135,7 @@ class HomeFragment : Fragment() {
         }
 
 
-        binding.tvSalesName.text=namaUser
+
         binding.tvTanggalHariIni.text=currentDate.toString()
 
         binding.cardLogOutSales.setOnClickListener {
@@ -122,6 +150,12 @@ class HomeFragment : Fragment() {
             startActivity(intent);
             this.activity?.finish()
         }
+        binding.tvLihatTask.setOnClickListener{
+            val bundle = Bundle()
+            bundle.putString("UID",uid)
+            bundle.putString("email",email)
+            it.findNavController().navigate(R.id.task,bundle)
+        }
 
         binding.tvLihatDetail.setOnClickListener {
             findNavController().navigate(R.id.detail_User)
@@ -133,7 +167,7 @@ class HomeFragment : Fragment() {
 
         binding.btnMasukKerja.setOnClickListener {
             (activity as MainActivityBottomNav).startLocationService()
-
+//            setPeriodicWorkerUpdateLoc()
             binding.btnSelesaiKerja.isEnabled=true
             binding.btnMasukKerja.isEnabled=false
             val sharedPref = activity?.getSharedPreferences("LocActive", Context.MODE_PRIVATE)
@@ -144,6 +178,8 @@ class HomeFragment : Fragment() {
         }
         binding.btnSelesaiKerja.setOnClickListener {
             (activity as MainActivityBottomNav).stopLocationService()
+//            stopWorkerUpdateLoconeTime()
+            WorkManager.getInstance().cancelAllWork();
             binding.btnSelesaiKerja.isEnabled=false
             binding.btnMasukKerja.isEnabled=true
             val sharedPref = activity?.getSharedPreferences("LocActive", Context.MODE_PRIVATE)
@@ -161,8 +197,21 @@ class HomeFragment : Fragment() {
         super.onStart()
         startLoading()
 
-
     }
+
+    fun setPeriodicWorkerUpdateLoc(){
+        val periodicWorkRequest:PeriodicWorkRequest = PeriodicWorkRequest
+            .Builder(UpdateLocationWorker::class.java,15, TimeUnit.MINUTES)
+            .build()
+        WorkManager.getInstance().enqueue(periodicWorkRequest)
+    }
+    fun stopWorkerUpdateLoconeTime(){
+        val oneTimeWorkRequest:OneTimeWorkRequest = OneTimeWorkRequest.Builder(StopUpdateLocationWorker::class.java)
+            .build()
+        WorkManager.getInstance().enqueue(oneTimeWorkRequest)
+    }
+
+
 
 
 
@@ -184,8 +233,22 @@ class HomeFragment : Fragment() {
     }
 
     fun fetchDataUserOrder(){
+        val user = FirebaseAuth.getInstance().currentUser
+        var sales= db.collection("users")
+        var query= sales.whereEqualTo("uid",user?.uid).whereEqualTo("admin",false).get()
+        query.addOnSuccessListener {
+            var items=HashMap<String,Any>()
+            val simpleDate = SimpleDateFormat("dd/M/yyyy")
+            val currentDate = simpleDate.format(Date())
+            items.put("tanggalprogress",currentDate)
+            items.put("todaysold",0)
+            for(document in it){
+                if(document["tanggalprogress"].toString()!=currentDate){
+                    db.collection("users").document(document.id).set(items, SetOptions.merge())
+                }
+            }
+        }
 
-        db = FirebaseFirestore.getInstance()
         db.collection("orders").
         addSnapshotListener(object : EventListener<QuerySnapshot> {
             override fun onEvent(
@@ -232,6 +295,8 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+
 
 
 

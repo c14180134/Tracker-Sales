@@ -2,33 +2,32 @@ package com.example.trackersales
 
 import android.app.AlertDialog
 import android.content.Context
-import android.media.Image
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
-
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.trackersales.adapter.AdapterItem
 import com.example.trackersales.adapter.AdapterListCustomerDialog
 import com.example.trackersales.dataclass.Item
 import com.example.trackersales.dataclass.UserCustomer
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.EventListener
+import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 class CreateOrder : Fragment() {
     private lateinit var viewOfLayout: View
-    private lateinit var listView :ListView
+    private lateinit var listView :RecyclerView
     private lateinit var listViewCustomer :ListView
     private lateinit var tvNamaCustomer:TextView
     private lateinit var tvTotalHargaOrder:TextView
@@ -44,10 +43,9 @@ class CreateOrder : Fragment() {
     private lateinit var CustomerAdapter: AdapterListCustomerDialog
     private lateinit var db : FirebaseFirestore
     var listItemName = ArrayList<String>()
-    var listCustomerName = ArrayList<String>()
-
+    var datetime:Date?=null
     var totalHargaorderlist=0
-
+    private lateinit var addDialog :AlertDialog.Builder
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,20 +56,33 @@ class CreateOrder : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val testDate = "29-Apr-2010,13:00:14 PM"
+        val formatter: DateFormat = SimpleDateFormat("d-MMM-yyyy,HH:mm:ss aaa")
+        val date: Date = formatter.parse(testDate)
+        addDialog = AlertDialog.Builder(this.context)
+        datetime=date
+
         val navBar: BottomNavigationView = requireActivity().findViewById(R.id.nav_view)
         navBar.visibility = View.GONE
         // Inflate the layout for this fragment
         viewOfLayout = inflater!!.inflate(R.layout.fragment_create_order, container, false)
 
-        itemAdapter = AdapterItem(this.requireContext(),listItemOrder)
-        listView = viewOfLayout.findViewById(R.id.itemListView)
+        initRecyclerViewTask(viewOfLayout)
 
         addItemButton =viewOfLayout.findViewById(R.id.itemAddBtnOrder)
         tvNamaCustomer = viewOfLayout.findViewById(R.id.tvCustomerName)
         pilihCustomerButton =viewOfLayout.findViewById(R.id.btnPilihCustomer)
         createOrderBtn = viewOfLayout.findViewById(R.id.createOrderBtn)
         tvTotalHargaOrder=viewOfLayout.findViewById(R.id.tvTotalHarga)
-        listView.adapter = itemAdapter
+        val recylcerView = viewOfLayout.findViewById<RecyclerView>(R.id.itemListView)
+
+        recylcerView.setOnClickListener {
+            for(i in listItemOrder){
+                totalHargaorderlist=totalHargaorderlist + i.harga!!.toInt()
+            }
+//                totalHargaorderlist= (totalHargaorderlist+x).toInt()
+            tvTotalHargaOrder.text=totalHargaorderlist.toString()
+        }
 
         viewOfLayout.findViewById<ImageButton>(R.id.btnBack).setOnClickListener {
             it.findNavController().navigateUp()
@@ -98,6 +109,13 @@ class CreateOrder : Fragment() {
         return viewOfLayout
 
     }
+    private fun initRecyclerViewTask(view: View){
+        val recylcerView = view.findViewById<RecyclerView>(R.id.itemListView)
+        recylcerView.layoutManager= LinearLayoutManager(activity)
+        itemAdapter= AdapterItem(view,listItemOrder!!,false)
+        recylcerView.adapter=itemAdapter
+
+    }
 
     private fun storeOrder(){
         val simpleDate = SimpleDateFormat("dd/M/yyyy")
@@ -122,11 +140,11 @@ class CreateOrder : Fragment() {
             }
         }
         if(tvNamaCustomer.text !="Nama"){
-            Log.d("halo","masuk1")
             if(listItemOrder.size > 0 ){
                 val sharedPref = activity?.getSharedPreferences("LocActive", Context.MODE_PRIVATE)
                 var uidsp= sharedPref?.getString("UID","")
                 val items =HashMap<String,Any>()
+                items.put("dateTime", LocalDateTime.now())
                 items.put("nama_customer",tvNamaCustomer.text.toString())
                 items.put("tanggal",currentDate)
                 items.put("total_harga",totalHarga)
@@ -150,6 +168,18 @@ class CreateOrder : Fragment() {
                     items.put("todaysold",todaySold)
                     for(document in it){
                         db.collection("users").document(document.id).set(items, SetOptions.merge())
+                    }
+                }
+                var queryCustomer= db.collection("customer").whereEqualTo("customerid",cid).get()
+                queryCustomer.addOnSuccessListener {
+                    val items = java.util.HashMap<String, Any>()
+                    val jumlah = it.documents[0].get("seluruhpengeluaran").toString().toDouble()+totalHarga
+                    val totalPembelian = it.documents[0].get("totalbeli").toString().toInt()+1
+                    items.put("seluruhpengeluaran",jumlah)
+                    items.put("totalbeli",totalPembelian)
+
+                    for(document in it){
+                        db.collection("customer").document(document.id).set(items, SetOptions.merge())
                     }
                 }
 
@@ -191,8 +221,11 @@ class CreateOrder : Fragment() {
 
                 for(dc:DocumentChange in value?.documentChanges!!){
                     if(dc.type == DocumentChange.Type.ADDED){
-                        listCustomerName.add(dc.document["nama"].toString())
-                        listCustomerDialog.add(dc.document.toObject(UserCustomer::class.java))
+                        if(dc.document["name"]!=null){
+                            listCustomerDialog.add(dc.document.toObject(UserCustomer::class.java))
+                            tempArrayList.add(dc.document.toObject(UserCustomer::class.java))
+                        }
+
 
                     }
                 }
@@ -209,12 +242,7 @@ class CreateOrder : Fragment() {
         CustomerAdapter = AdapterListCustomerDialog(this.requireContext(),tempArrayList)
         listViewCustomer.adapter=CustomerAdapter
 
-        listViewCustomer.setOnItemClickListener { adapterView, view, i, l ->
-            Toast.makeText(this.context,tempArrayList[i].name,Toast.LENGTH_SHORT).show()
-            tvNamaCustomer.visibility=View.VISIBLE
-            tvNamaCustomer.setText(tempArrayList[i].name)
-            pilihCustomerButton.setText("Ganti Customer")
-        }
+
 
 
         searchViewCustomer.setOnQueryTextListener(object :SearchView.OnQueryTextListener{
@@ -233,7 +261,6 @@ class CreateOrder : Fragment() {
                     }
                     CustomerAdapter.notifyDataSetChanged()
                 }else{
-                    tempArrayList.clear()
                     tempArrayList.addAll(listCustomerDialog)
                     CustomerAdapter.notifyDataSetChanged()
                 }
@@ -241,10 +268,17 @@ class CreateOrder : Fragment() {
             }
 
         })
-        val addDialog = AlertDialog.Builder(this.requireContext())
+        var dialogs = addDialog.show()
         addDialog.setView(v)
         addDialog.create()
         addDialog.show()
+        listViewCustomer.setOnItemClickListener { adapterView, view, i, l ->
+            Toast.makeText(this.context,tempArrayList[i].name,Toast.LENGTH_SHORT).show()
+            tvNamaCustomer.visibility=View.VISIBLE
+            tvNamaCustomer.setText(tempArrayList[i].name)
+            pilihCustomerButton.setText("Ganti Customer")
+            dialogs.dismiss()
+        }
     }
 
     private fun addInfo(){
@@ -273,6 +307,9 @@ class CreateOrder : Fragment() {
 
                 }
                 val x = jumlah.toLong()*harga
+//                for(i in listItemOrder){
+//                    totalHargaorderlist=totalHargaorderlist + i.harga!!.toInt()
+//                }
                 totalHargaorderlist= (totalHargaorderlist+x).toInt()
                 tvTotalHargaOrder.text=totalHargaorderlist.toString()
                 listItemOrder.add(Item((harga*jumlah.toLong()),name,jumlah.toLong()))

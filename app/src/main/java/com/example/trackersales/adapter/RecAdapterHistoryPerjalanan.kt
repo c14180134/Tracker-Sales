@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.trackersales.R
 import com.example.trackersales.dataclass.HistoryLokasi
 import com.example.trackersales.dataclass.UserSales
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class RecAdapterHistoryPerjalanan(private val HistoryList: ArrayList<HistoryLokasi>) : RecyclerView.Adapter<RecAdapterHistoryPerjalanan.RecHistoryPerjalananViewHolder>() {
     override fun onCreateViewHolder(
@@ -30,7 +32,9 @@ class RecAdapterHistoryPerjalanan(private val HistoryList: ArrayList<HistoryLoka
         holder: RecHistoryPerjalananViewHolder,
         position: Int
     ) {
-        val hsLokasi : HistoryLokasi = HistoryList[position]
+        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/M/yyyy")
+        val x = HistoryList.sortedByDescending { LocalDate.parse(it.tanggal, dateTimeFormatter) }
+        val hsLokasi : HistoryLokasi = x[position]
         holder.tanggalHistory.text = hsLokasi.tanggal
         val bundle = Bundle()
         bundle.putParcelableArrayList("Lokasi", hsLokasi.Location)

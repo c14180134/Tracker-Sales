@@ -3,7 +3,7 @@ package com.example.trackersales.dataclass
 import android.os.Parcel
 import android.os.Parcelable
 
-data class Item(var harga:Long?=null,var nama:String?=null, var jumlah:Long?=null ):Parcelable {
+data class Item( var harga:Long?=null,var nama:String?=null,var jumlah:Long?=null ):Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,
         parcel.readString(),

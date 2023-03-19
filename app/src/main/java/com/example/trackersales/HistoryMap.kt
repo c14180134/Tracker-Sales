@@ -53,9 +53,6 @@ class HistoryMap : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        for(d in param1!!){
-            Log.d("Lokasid", d.Latitude.toString())
-        }
         val view =inflater.inflate(R.layout.fragment_history_map, container, false)
         view.findViewById<ImageButton>(R.id.btnBack).setOnClickListener {
             it.findNavController().navigateUp()

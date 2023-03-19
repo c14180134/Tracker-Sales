@@ -11,8 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.trackersales.R
 import com.example.trackersales.adapter.RecAdapterHistoryOrder.*
 import com.example.trackersales.dataclass.Orders
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-class RecAdapterHistoryOrder(private val OrderList: ArrayList<Orders>) : RecyclerView.Adapter<RecHistoryViewHolder>() {
+class RecAdapterHistoryOrder(private val OrderList: List<Orders>) : RecyclerView.Adapter<RecHistoryViewHolder>() {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -25,7 +27,9 @@ class RecAdapterHistoryOrder(private val OrderList: ArrayList<Orders>) : Recycle
         holder: RecHistoryViewHolder,
         position: Int
     ) {
-        val order = OrderList[position]
+        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/M/yyyy")
+        val x = OrderList.sortedByDescending { LocalDate.parse(it.tanggal, dateTimeFormatter) }
+        val order = x[position]
 //        if(position<OrderList.size-1){
 //            if(order.tanggal==OrderList[position+1].tanggal){
 //                holder.tanggalCustomer.visibility=View.GONE

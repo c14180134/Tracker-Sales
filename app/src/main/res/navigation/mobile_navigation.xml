@@ -67,7 +67,11 @@
         android:id="@+id/detail_User"
         android:name="com.example.trackersales.Detail_User"
         android:label="fragment_detail_user"
-        tools:layout="@layout/fragment_detail_user" />
+        tools:layout="@layout/fragment_detail_user" >
+        <action
+            android:id="@+id/action_detail_User_self"
+            app:destination="@id/detail_User" />
+    </fragment>
     <fragment
         android:id="@+id/detailSales"
         android:name="com.example.trackersales.DetailSales"
@@ -103,6 +107,32 @@
         android:name="com.example.trackersales.ui.task.AddTask"
         android:label="fragment_add_task"
         tools:layout="@layout/fragment_add_task" />
+    <fragment
+        android:id="@+id/editProfileUser"
+        android:name="com.example.trackersales.EditProfileUser"
+        android:label="EditProfileUser" />
+    <fragment
+        android:id="@+id/detailCustomer"
+        android:name="com.example.trackersales.DetailCustomer"
+        android:label="fragment_detail_customer"
+        tools:layout="@layout/fragment_detail_customer" />
+    <fragment
+        android:id="@+id/editCustomer"
+        android:name="com.example.trackersales.EditCustomer"
+        android:label="EditCustomer" />
+    <fragment
+        android:id="@+id/detailLaporan"
+        android:name="com.example.trackersales.DetailLaporan"
+        android:label="fragment_detail_laporan"
+        tools:layout="@layout/fragment_detail_laporan" />
+    <fragment
+        android:id="@+id/list_Laporan"
+        android:name="com.example.trackersales.List_Laporan"
+        android:label="List_Laporan" />
+    <fragment
+        android:id="@+id/targetLocation"
+        android:name="com.example.trackersales.TargetLocation"
+        android:label="TargetLocation" />
 
 
 </navigation>

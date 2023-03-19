@@ -96,7 +96,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <ListView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/itemListView"
                 android:layout_marginBottom="65dp"
                 android:layout_width="fill_parent"

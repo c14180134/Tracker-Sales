@@ -2,6 +2,7 @@ package com.example.trackersales
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -30,7 +31,7 @@ class Detail_User : Fragment() {
     var namasales =""
     var noTeleponSales=""
     var tanggalbergabung = ""
-    var targetSales= 0
+    var targetSales:Long=0
     var totalNetWorth=0
 
 
@@ -46,6 +47,7 @@ class Detail_User : Fragment() {
         db = FirebaseFirestore.getInstance()
         fetchUserData()
 
+
         binding.btnBack.setOnClickListener {
             it.findNavController().navigateUp()
         }
@@ -59,13 +61,22 @@ class Detail_User : Fragment() {
 
         startLoading()
 
-        Handler().postDelayed({
-            binding.tvNamaSales.text=namasales
-            binding.tvTanggalJoin.text=tanggalbergabung
-            binding.tvTarget.text=targetSales.toString()
-            binding.tvNoTelpSales.text=noTeleponSales
-            binding.tvNetWorth.text="Rp."+totalNetWorth.toString()
-                              }, 400)
+
+//        Handler().postDelayed({
+//            binding.tvNamaSales.text=namasales
+//            binding.tvTanggalJoin.text=tanggalbergabung
+//            binding.tvTarget.text=targetSales.toString()
+//            binding.tvNoTelpSales.text=noTeleponSales
+//            binding.tvNetWorth.text="Rp."+totalNetWorth.toString()
+//                              }, 400)
+
+        binding.btnEditProfile.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString("notelepon",noTeleponSales)
+            bundle.putString("namasales",namasales)
+            it.findNavController().navigate(R.id.editProfileUser,bundle)
+        }
+
 
 
         return root
@@ -88,30 +99,47 @@ class Detail_User : Fragment() {
     fun fetchUserData(){
         val sharedPref = activity?.getSharedPreferences("LocActive", Context.MODE_PRIVATE)
         var uidsp= sharedPref?.getString("UID","")
-        db.collection("users").
-        addSnapshotListener(object : EventListener<QuerySnapshot> {
-            override fun onEvent(
-                value: QuerySnapshot?,
-                error: FirebaseFirestoreException?
-            ) {
-                if(error !=null){
-                    Log.e("Firestore Error",error.message.toString())
-                    return
-                }
-                for(dc : DocumentChange in value?.documentChanges!!){
+        db.collection("users").whereEqualTo("uid",uidsp).get()
+            .addOnCompleteListener {
+                for(dc : DocumentChange in it.result.documentChanges!!){
                     if(dc.type == DocumentChange.Type.ADDED){
-                        val pengecualian = dc.document.toObject(UserSales::class.java)
-                        if(pengecualian.UID.toString()==uidsp){
-                            namasales=pengecualian.email.toString()
-                            noTeleponSales=pengecualian.notlp.toString()
-                            targetSales= pengecualian.target?.toInt() ?:0
-                            tanggalbergabung =pengecualian.tanggalbergabung.toString()
-                        }
-
+                        namasales=dc.document["email"].toString()
+                        noTeleponSales=dc.document["notlp"].toString()
+                        targetSales= dc.document["target"].toString().toLong()
+                        tanggalbergabung =dc.document["tanggalbergabung"].toString()
                     }
                 }
+                if(it.isComplete){
+                    binding.tvNamaSales.text=namasales
+                    binding.tvTanggalJoin.text=tanggalbergabung
+                    binding.tvTarget.text=targetSales.toString()
+                    binding.tvNoTelpSales.text=noTeleponSales
+                    binding.tvNetWorth.text="Rp."+totalNetWorth.toString()
+                }
             }
-        })
+//        addSnapshotListener(object : EventListener<QuerySnapshot> {
+//            override fun onEvent(
+//                value: QuerySnapshot?,
+//                error: FirebaseFirestoreException?
+//            ) {
+//                if(error !=null){
+//                    Log.e("Firestore Error",error.message.toString())
+//                    return
+//                }
+//                for(dc : DocumentChange in value?.documentChanges!!){
+//                    if(dc.type == DocumentChange.Type.ADDED){
+//                        val pengecualian = dc.document.toObject(UserSales::class.java)
+//                        if(pengecualian.UID.toString()==uidsp){
+//                            namasales=pengecualian.email.toString()
+//                            noTeleponSales=pengecualian.notlp.toString()
+//                            targetSales= pengecualian.target?:0
+//                            tanggalbergabung =pengecualian.tanggalbergabung.toString()
+//                        }
+//
+//                    }
+//                }
+//            }
+//        })
 
         val otherdata = db.collection("orders")
         otherdata.addSnapshotListener(object : EventListener<QuerySnapshot> {

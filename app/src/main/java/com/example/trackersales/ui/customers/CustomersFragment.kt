@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -35,6 +36,7 @@ class CustomersFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var db: FirebaseFirestore
     var customerArrayList :ArrayList<UserCustomer> = ArrayList()
+    var listAll :ArrayList<UserCustomer> = ArrayList()
     private var longitude = 0.0
     private  var latitude = 0.0
 
@@ -63,6 +65,34 @@ class CustomersFragment : Fragment() {
 
         eventChangeListenerCustomer()
         initRecyclerViewCustomer(root)
+        binding.searchViewCustomer.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newTexts: String?): Boolean {
+                customerArrayList.clear()
+                val searchText = newTexts!!.toLowerCase(Locale.getDefault())
+                if (searchText.isNotEmpty()){
+                    Log.d("user","masuk")
+                    listAll.forEach {
+                        Log.d("user","masuk212")
+                        if(it.name!!.toLowerCase(Locale.getDefault()).contains(searchText)){
+                            Log.d("user",it.toString())
+                            customerArrayList.add(it)
+                        }
+                    }
+                    recAdapterCustomer.notifyDataSetChanged()
+                }else{
+                    customerArrayList.addAll(listAll)
+                    recAdapterCustomer.notifyDataSetChanged()
+                }
+                return false
+            }
+
+        })
+
         return root
     }
 
@@ -115,12 +145,21 @@ class CustomersFragment : Fragment() {
                 items.put("name",namaCustomer.text.toString())
                 items.put("tanggal",currentDate)
                 items.put("alamat",alamatCustomer.text.toString())
-                items.put("notelepon",noTeleponCustomer.text.toString().toLong())
+                items.put("notelepon",noTeleponCustomer.text.toString())
                 val document =db.collection("customer").document()
+                items.put("seluruhpengeluaran",0)
+                items.put("totalbeli",0)
                 items.put("alamatLong",longitude)
                 items.put("alamatLat",latitude)
                 items.put("customerid",document.id)
                 val set = document.set(items)
+                var queryCustomer= db.collection("customer").document("TotalDocument").get()
+                queryCustomer.addOnSuccessListener {
+                    val items = java.util.HashMap<String, Any>()
+                    val jumlah = it.get("Total").toString().toDouble()+1
+                    items.put("Total",jumlah)
+                    db.collection("customer").document("TotalDocument").set(items, SetOptions.merge())
+                }
                 set.addOnSuccessListener {
                     Toast.makeText(this.context,"success",Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
@@ -177,6 +216,7 @@ class CustomersFragment : Fragment() {
     }
 
     private fun eventChangeListenerCustomer(){
+        customerArrayList.clear()
         db = FirebaseFirestore.getInstance()
         db.collection("customer").
         addSnapshotListener(object : EventListener<QuerySnapshot> {
@@ -190,8 +230,12 @@ class CustomersFragment : Fragment() {
                 }
                 for(dc : DocumentChange in value?.documentChanges!!){
                     if(dc.type == DocumentChange.Type.ADDED){
+                        Log.d("lihat",dc.document.id)
+                        if(dc.document.id!="TotalDocument"){
+                            customerArrayList.add(dc.document.toObject(UserCustomer::class.java))
+                            listAll.add(dc.document.toObject(UserCustomer::class.java))
+                        }
 
-                        customerArrayList.add(dc.document.toObject(UserCustomer::class.java))
                     }
                 }
                 recAdapterCustomer.notifyDataSetChanged()
